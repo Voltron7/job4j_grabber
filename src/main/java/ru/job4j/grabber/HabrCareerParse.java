@@ -29,10 +29,23 @@ public class HabrCareerParse {
                 String vacancyName = titleElement.text();
                 String link = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
                 String dateTime = String.format("%s", dateLink.attr("datetime"));
+                String description = retrieveDescription(link);
                 HabrCareerDateTimeParser parser = new HabrCareerDateTimeParser();
                 LocalDateTime localDateTime = parser.parse(dateTime);
-                System.out.printf("%s %s %s%n", vacancyName, localDateTime, link);
+                System.out.printf("%s %s %s %s%n", vacancyName, localDateTime, link, description);
             });
         }
+    }
+
+    private static String retrieveDescription(String link) {
+        try {
+            Connection connection = Jsoup.connect(link);
+            Document document = connection.get();
+            Element description = document.select(".collapsible-description__content").first();
+            return description.text();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "Description doesn't exist";
     }
 }
