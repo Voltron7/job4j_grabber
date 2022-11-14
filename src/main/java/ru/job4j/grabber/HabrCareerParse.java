@@ -18,6 +18,8 @@ public class HabrCareerParse implements Parse {
 
     private static final String PAGE_LINK = String.format("%s/vacancies/java_developer?page=", SOURCE_LINK);
 
+    private static final int COUNT_PAGES = 5;
+
     private final DateTimeParser dateTimeParser;
 
     public HabrCareerParse(DateTimeParser dateTimeParser) {
@@ -36,29 +38,30 @@ public class HabrCareerParse implements Parse {
     public List<Post> list(String link) {
         List<Post> list = new ArrayList<>();
         try {
-            for (int page = 1; page <= 5; page++) {
+            for (int page = 1; page <= COUNT_PAGES; page++) {
                 String currentPage = String.format("%s%d", link, page);
                 Connection connection = Jsoup.connect(currentPage);
                 Document document = connection.get();
                 Elements rows = document.select(".vacancy-card__inner");
-                rows.forEach(row -> {
-                    Element titleElement = row.select(".vacancy-card__title").first();
-                    Element linkElement = titleElement.child(0);
-                    Element dateElement = row.select(".vacancy-card__date").first();
-                    Element dateLink = dateElement.child(0);
-                    String vacancyName = titleElement.text();
-                    String postLink = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
-                    String dateTime = String.format("%s", dateLink.attr("datetime"));
-                    String description = retrieveDescription(postLink);
-                    HabrCareerDateTimeParser parser = new HabrCareerDateTimeParser();
-                    LocalDateTime localDateTime = parser.parse(dateTime);
-                    list.add(new Post(vacancyName, postLink, description, localDateTime));
-                });
+                rows.forEach(row -> list.add(getPost(row)));
             }
         } catch (IOException e) {
             throw new IllegalArgumentException("Vacancies doesn't exist");
         }
         return list;
+    }
+
+    private Post getPost(Element element) {
+        Element titleElement = element.select(".vacancy-card__title").first();
+        Element linkElement = titleElement.child(0);
+        Element dateElement = element.select(".vacancy-card__date").first();
+        Element dateLink = dateElement.child(0);
+        String vacancyName = titleElement.text();
+        String postLink = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
+        String dateTime = String.format("%s", dateLink.attr("datetime"));
+        String description = retrieveDescription(postLink);
+        LocalDateTime localDateTime = dateTimeParser.parse(dateTime);
+        return new Post(vacancyName, postLink, description, localDateTime);
     }
 
     private String retrieveDescription(String link) {
