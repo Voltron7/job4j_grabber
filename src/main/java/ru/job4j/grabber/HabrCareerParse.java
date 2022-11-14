@@ -56,20 +56,19 @@ public class HabrCareerParse implements Parse {
                 });
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IllegalArgumentException("Vacancies doesn't exist");
         }
         return list;
     }
 
-    private static String retrieveDescription(String link) {
+    private String retrieveDescription(String link) {
         try {
             Connection connection = Jsoup.connect(link);
             Document document = connection.get();
             Element description = document.select(".collapsible-description__content").first();
             return description.text();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IllegalArgumentException("Vacancy doesn't have description");
         }
-        return "Description doesn't exist";
     }
 }
