@@ -46,7 +46,7 @@ public class HabrCareerParse implements Parse {
                 rows.forEach(row -> list.add(getPost(row)));
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException("Vacancies doesn't exist");
+            throw new IllegalArgumentException("Something went wrong");
         }
         return list;
     }
