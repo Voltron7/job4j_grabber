@@ -28,7 +28,7 @@ public class PsqlStore implements Store, AutoCloseable {
 
     private static Properties getProperties() {
         Properties properties = new Properties();
-        try (InputStream in = AlertRabbit.class.getClassLoader()
+        try (InputStream in = PsqlStore.class.getClassLoader()
                 .getResourceAsStream("post.properties")) {
             properties.load(in);
         } catch (IOException e) {
@@ -51,7 +51,7 @@ public class PsqlStore implements Store, AutoCloseable {
     @Override
     public void save(Post post) {
         try (PreparedStatement statement = cnn.prepareStatement(
-                "insert into post (name, text, link, created) values (?, ?, ?, ?);",
+                "insert into post (name, link, text, created) values (?, ?, ?, ?) on conflict (link) do nothing;",
                 PreparedStatement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, post.getTitle());
             statement.setString(2, post.getLink());
